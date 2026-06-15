@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  email       String  @unique
+  password    String
+  fullname    String
+  phoneNumber String?
+  avatar      String?
+  isActive    Boolean @default(true)
+
+  refreshTokens RefreshToken[]
+  devices       Device[]
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  expiresAt DateTime
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  deviceId String? @db.ObjectId
+  device   Device? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Device {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userAgent  String?
+  ip         String?
+  isActive   Boolean  @default(true)
+  lastActive DateTime @default(now())
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  taxCode     String?
+  address     String?
+  contactName String?
+  phone       String?
+  email       String?
+  note        String?
+  isActive    Boolean @default(true)
+
+  createdById   String? @db.ObjectId
+  createdByName String?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  code        String?
+  name        String
+  property    String?
+  unit        String?
+  price       Int     @default(0)
+  description String?
+  isActive    Boolean @default(true)
+
+  createdById   String? @db.ObjectId
+  createdByName String?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Quote {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  code String @unique
+
+  customerName  String
+  taxCode       String?
+  buyerAddress  String?
+  buyerPerson   String?
+  phone         String?
+  email         String?
+
+  quoteDate    DateTime?
+  validUntil   DateTime?
+
+  items Json
+
+  subtotal   Int @default(0)
+  includeVat Boolean @default(false)
+  vatRate    Int @default(0)
+  vatAmount  Int @default(0)
+  grandTotal Int @default(0)
+
+  deliveryTime String?
+  paymentTerm  String?
+  quoteNote    String?
+  internalNote String?
+
+  status QuoteStatus @default(DRAFT)
+
+  invoiceId   String? @db.ObjectId
+  invoiceCode String?
+
+  createdById   String? @db.ObjectId
+  createdByName String?
+  updatedById   String? @db.ObjectId
+  updatedByName String?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Invoice {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  code String @unique
+
+  customerName String
+  taxCode      String?
+  buyerAddress String?
+  buyerPerson  String?
+  phone        String?
+  email        String?
+
+  invoiceDate DateTime?
+
+  items Json
+
+  subtotal   Int @default(0)
+  includeVat Boolean @default(false)
+  vatRate    Int @default(0)
+  vatAmount  Int @default(0)
+  grandTotal Int @default(0)
+
+  paidValue Int @default(0)
+  debtValue Int @default(0)
+
+  paymentMethod String?
+  invoiceType   String?
+  invoiceNote   String?
+  internalNote  String?
+
+  status InvoiceStatus @default(UNPAID)
+
+  sourceQuoteId   String? @db.ObjectId
+  sourceQuoteCode String?
+
+  createdById   String? @db.ObjectId
+  createdByName String?
+  updatedById   String? @db.ObjectId
+  updatedByName String?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Debt {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  invoiceId   String? @db.ObjectId
+  invoiceCode String?
+
+  customerName String
+  phone        String?
+
+  totalValue Int @default(0)
+  paidValue  Int @default(0)
+  debtValue  Int @default(0)
+
+  status DebtStatus @default(OPEN)
+  note   String?
+
+  createdById   String? @db.ObjectId
+  createdByName String?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ActivityLog {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId   String? @db.ObjectId
+  userName String?
+
+  action      String
+  module      String
+  targetId    String?
+  targetCode  String?
+  description String?
+
+  createdAt DateTime @default(now())
+}
+
+enum QuoteStatus {
+  DRAFT
+  RECORDED
+  CONVERTED
+  CANCELLED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  CANCELLED
+}
+
+enum DebtStatus {
+  OPEN
+  PAID
+  CANCELLED
+}
