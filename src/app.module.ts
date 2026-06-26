@@ -14,6 +14,7 @@ import { AuthenticationGuard } from './shared/guards/authentication.guard'
 import { AccessTokenGuard } from './shared/guards/access-token.guard'
 import { ApiKeyGuard } from './shared/guards/api-key.guard'
 import { SensitiveFieldInterceptor } from './interceptors/sensitive-field.interceptor'
+import { InvoiceModule } from './routes/invoice/invoice.module';
 
 const TIME_THROTTLER = 60
 const LIMIT_THROTTLER = 20
@@ -37,6 +38,7 @@ const LIMIT_THROTTLER = 20
     SharedModule,
     AuthModule,
     UserModule,
+    InvoiceModule,
   ],
 
   controllers: [],

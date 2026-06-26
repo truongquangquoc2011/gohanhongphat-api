@@ -162,6 +162,7 @@ model Invoice {
   invoiceType   String?
   invoiceNote   String?
   internalNote  String?
+  accountNo    String?
 
   status InvoiceStatus @default(UNPAID)
 
