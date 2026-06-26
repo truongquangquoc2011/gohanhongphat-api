@@ -11,6 +11,10 @@ import {
 export class InvoiceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly notDeleted = {
+    OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+  }
+
   private generateCode(invoiceType: string): string {
     const now = new Date()
     const yy = String(now.getFullYear()).slice(-2)
@@ -52,7 +56,9 @@ export class InvoiceRepository {
       sortOrder,
     } = query
 
-    const where: any = { deletedAt: null }
+    const where: any = {
+      OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+    }
 
     if (status) where.status = status
     if (invoiceType) where.invoiceType = invoiceType
@@ -60,11 +66,19 @@ export class InvoiceRepository {
     if (createdById) where.createdById = createdById
 
     if (keyword) {
-      where.OR = [
-        { code: { contains: keyword, mode: 'insensitive' } },
-        { customerName: { contains: keyword, mode: 'insensitive' } },
-        { taxCode: { contains: keyword, mode: 'insensitive' } },
+      where.AND = [
+        {
+          OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+        },
+        {
+          OR: [
+            { code: { contains: keyword, mode: 'insensitive' } },
+            { customerName: { contains: keyword, mode: 'insensitive' } },
+            { taxCode: { contains: keyword, mode: 'insensitive' } },
+          ],
+        },
       ]
+      delete where.OR
     }
 
     if (fromDate || toDate) {
@@ -92,13 +106,19 @@ export class InvoiceRepository {
 
   findById(id: string) {
     return this.prisma.invoice.findFirst({
-      where: { id, deletedAt: null },
+      where: {
+        id,
+        OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+      },
     })
   }
 
   findByCode(code: string) {
     return this.prisma.invoice.findFirst({
-      where: { code, deletedAt: null },
+      where: {
+        code,
+        OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+      },
     })
   }
 
