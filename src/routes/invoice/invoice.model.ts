@@ -39,9 +39,7 @@ export const GetInvoicesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
   keyword: z.string().optional(),
-  status: z
-    .enum(['UNPAID', 'PARTIAL', 'PAID', 'CANCELLED'])
-    .optional(),
+  status: z.enum(['UNPAID', 'PARTIAL', 'PAID', 'CANCELLED']).optional(),
   invoiceType: z.string().optional(),
   paymentMethod: z.string().optional(),
   createdById: z.string().optional(),
@@ -66,7 +64,7 @@ export const InvoiceResSchema = z.object({
   phone: z.string().nullable(),
   email: z.string().nullable(),
   accountNo: z.string().nullable(),
-  invoiceDate: z.date().nullable(),
+  invoiceDate: z.preprocess((val) => (val ? new Date(val as any) : null), z.date().nullable()),
   items: z.any(),
   subtotal: z.number(),
   vatRate: z.number(),
@@ -83,8 +81,8 @@ export const InvoiceResSchema = z.object({
   sourceQuoteCode: z.string().nullable(),
   createdById: z.string().nullable(),
   createdByName: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.preprocess((val) => new Date(val as any), z.date()),
+  updatedAt: z.preprocess((val) => new Date(val as any), z.date()),
 })
 
 export const InvoiceListResSchema = z.object({
