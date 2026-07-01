@@ -64,7 +64,7 @@ export const InvoiceResSchema = z.object({
   phone: z.string().nullable(),
   email: z.string().nullable(),
   accountNo: z.string().nullable(),
-  invoiceDate: z.preprocess((val) => (val ? new Date(val as any) : null), z.date().nullable()),
+  invoiceDate: z.preprocess((val) => (val ? new Date(val as any).toISOString() : null), z.string().nullable()),
   items: z.any(),
   subtotal: z.number(),
   vatRate: z.number(),
@@ -81,8 +81,8 @@ export const InvoiceResSchema = z.object({
   sourceQuoteCode: z.string().nullable(),
   createdById: z.string().nullable(),
   createdByName: z.string().nullable(),
-  createdAt: z.preprocess((val) => new Date(val as any), z.date()),
-  updatedAt: z.preprocess((val) => new Date(val as any), z.date()),
+  createdAt: z.preprocess((val) => new Date(val as any).toISOString(), z.string()),
+  updatedAt: z.preprocess((val) => new Date(val as any).toISOString(), z.string()),
 })
 
 export const InvoiceListResSchema = z.object({
