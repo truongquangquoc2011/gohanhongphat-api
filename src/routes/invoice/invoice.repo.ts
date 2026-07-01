@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InvoiceStatus } from '@prisma/client'
 import { PrismaService } from '../../shared/services/prisma.service'
-import {
-  CreateInvoiceBodyType,
-  GetInvoicesQueryType,
-  UpdateInvoiceBodyType,
-} from './invoice.model'
+import { CreateInvoiceBodyType, GetInvoicesQueryType, UpdateInvoiceBodyType } from './invoice.model'
 
 @Injectable()
 export class InvoiceRepository {
@@ -32,10 +28,7 @@ export class InvoiceRepository {
     return `${prefix}${yy}-${rand}`
   }
 
-  private computeStatus(
-    paidValue: number,
-    grandTotal: number,
-  ): InvoiceStatus {
+  private computeStatus(paidValue: number, grandTotal: number): InvoiceStatus {
     if (paidValue <= 0) return InvoiceStatus.UNPAID
     if (paidValue >= grandTotal) return InvoiceStatus.PAID
     return InvoiceStatus.PARTIAL
@@ -122,11 +115,7 @@ export class InvoiceRepository {
     })
   }
 
-  async create(
-    body: CreateInvoiceBodyType,
-    createdById: string,
-    createdByName: string,
-  ) {
+  async create(body: CreateInvoiceBodyType, createdById: string, createdByName: string) {
     const subtotal = body.items.reduce((sum, item) => {
       return sum + Math.max(item.quantity * item.price - item.discount, 0)
     }, 0)
@@ -168,12 +157,7 @@ export class InvoiceRepository {
     })
   }
 
-  async update(
-    id: string,
-    body: UpdateInvoiceBodyType,
-    updatedById: string,
-    updatedByName: string,
-  ) {
+  async update(id: string, body: UpdateInvoiceBodyType, updatedById: string, updatedByName: string) {
     const existing = await this.findById(id)
     if (!existing) return null
 
@@ -200,7 +184,15 @@ export class InvoiceRepository {
         ...(body.phone !== undefined && { phone: body.phone }),
         ...(body.email !== undefined && { email: body.email || null }),
         ...(body.accountNo !== undefined && { accountNo: body.accountNo }),
-        ...(body.invoiceDate && { invoiceDate: new Date(body.invoiceDate) }),
+        ...(body.invoiceDate && {
+          invoiceDate: (() => {
+            const d = new Date(body.invoiceDate)
+            if (isNaN(d.getTime())) {
+              throw new Error(`invoiceDate không hợp lệ: ${body.invoiceDate}`)
+            }
+            return d
+          })(),
+        }),
         ...(body.paymentMethod && { paymentMethod: body.paymentMethod }),
         ...(body.invoiceType && { invoiceType: body.invoiceType }),
         ...(body.invoiceNote !== undefined && { invoiceNote: body.invoiceNote }),
